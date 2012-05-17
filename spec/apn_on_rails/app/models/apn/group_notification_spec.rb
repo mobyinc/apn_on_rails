@@ -35,7 +35,7 @@ describe APN::GroupNotification do
     
     it 'should return the necessary JSON for Apple' do
       noty = APN::GroupNotification.first
-      noty.to_apple_json.should == %{{"typ":"1","aps":{"badge":5,"sound":"my_sound.aiff","alert":"Hello!"}}}
+      noty.to_apple_json.should == %{{"aps":{"alert":"Hello!","badge":5,"sound":"my_sound.aiff"},"typ":"1"}}
     end
     
   end
@@ -46,7 +46,7 @@ describe APN::GroupNotification do
       noty = APN::GroupNotification.first
       noty.custom_properties = nil
       device = DeviceFactory.new(:token => '5gxadhy6 6zmtxfl6 5zpbcxmw ez3w7ksf qscpr55t trknkzap 7yyt45sc g6jrw7qz')
-      noty.message_for_sending(device).should == fixture_value('message_for_sending.bin')
+      Digest::MD5.hexdigest(noty.message_for_sending(device)).should == Digest::MD5.hexdigest(fixture_value('message_for_sending.bin'))
     end
     
     it 'should raise an APN::Errors::ExceededMessageSizeError if the message is too big' do

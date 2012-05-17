@@ -36,7 +36,7 @@ describe APN::Device do
     
     it 'should convert the text string to hexadecimal' do
       device = DeviceFactory.new(:token => '5gxadhy6 6zmtxfl6 5zpbcxmw ez3w7ksf qscpr55t trknkzap 7yyt45sc g6jrw7qz')
-      device.to_hexa.should == fixture_value('hexa.bin')
+      Digest::MD5.hexdigest(device.to_hexa).should == Digest::MD5.hexdigest(fixture_value('hexa.bin'))
     end
     
   end
