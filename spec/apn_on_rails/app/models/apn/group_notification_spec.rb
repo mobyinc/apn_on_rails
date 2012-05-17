@@ -46,7 +46,7 @@ describe APN::GroupNotification do
       noty = APN::GroupNotification.first
       noty.custom_properties = nil
       device = DeviceFactory.new(:token => '5gxadhy6 6zmtxfl6 5zpbcxmw ez3w7ksf qscpr55t trknkzap 7yyt45sc g6jrw7qz')
-      Digest::MD5.hexdigest(noty.message_for_sending(device)).should == Digest::MD5.hexdigest(fixture_value('message_for_sending.bin'))
+      Digest::MD5.hexdigest(noty.message_for_sending(device)).should == "cd334410090bc373e9302887cb015bea"
     end
     
     it 'should raise an APN::Errors::ExceededMessageSizeError if the message is too big' do

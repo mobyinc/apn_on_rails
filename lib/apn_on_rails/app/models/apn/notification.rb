@@ -85,13 +85,17 @@ class APN::Notification < APN::Base
     message
   end
 
+  def encoded_expiry_time(seconds_to_expire)
+    [Time.now.to_i + seconds_to_expire].pack('N')
+  end
+
   # Creates the enhanced binary message needed to send to Apple in order to have the ability to
   # retrieve error description from Apple server in case of connection was cancelled.
   # http://developer.apple.com/library/mac/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingWIthAPS/CommunicatingWIthAPS.html
   # Default expiry time is 10 days.
   def enhanced_message_for_sending (seconds_to_expire = configatron.apn.notification_expiration_seconds)
     json = to_apple_json
-    encoded_time = [Time.now.to_i + seconds_to_expire].pack('N')
+    encoded_time = self.encoded_expiry_time seconds_to_expire
     message = "\1#{[self.id].pack('N')}#{encoded_time}\0 #{self.device.to_hexa}\0#{json.length.chr}#{json}"
     raise APN::Errors::ExceededMessageSizeError.new(message) if message.size.to_i > 256
     message
