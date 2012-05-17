@@ -37,6 +37,17 @@ class APN::App < APN::Base
     end
   end
 
+  def self.response_from_apns(connection)
+    timeout = 5
+    if IO.select([connection], nil, nil, timeout)
+      buf = connection.read(6)
+      if buf
+        command, error_code, notification_id = buf.unpack('CCN')
+        [error_code, notification_id]
+      end
+    end
+  end
+
   def self.send_notifications_for_cert(the_cert, app_id)
     # unless self.unsent_notifications.nil? || self.unsent_notifications.empty?
       if (app_id == nil)
@@ -48,9 +59,26 @@ class APN::App < APN::Base
         APN::Connection.open_for_delivery({:cert => the_cert}) do |conn, sock|
           APN::Device.find_each(:conditions => conditions) do |dev|
             dev.unsent_notifications.each do |noty|
-              conn.write(noty.message_for_sending)
-              noty.sent_at = Time.now
-              noty.save
+              begin
+                conn.write(noty.enhanced_message_for_sending)
+                noty.sent_at = Time.now
+                noty.save
+              rescue Exception => e
+                if e.message == "Broken pipe"
+                  #Write failed (disconnected). Read response.
+                  error_code, notif_id = response_from_apns(conn)
+                  if error_code == 8
+                    failed_notification = APN::Notification.find(notif_id)
+                    unless failed_notification.nil?
+                      unless failed_notification.device.nil?
+                        APN::Device.delete(failed_notification.device.id)
+                        # retry sending notifications after invalid token was deleted
+                        send_notifications_for_cert(the_cert, app_id)
+                      end
+                    end
+                  end
+                end
+              end
             end
           end
         end

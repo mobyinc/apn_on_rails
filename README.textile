@@ -157,6 +157,7 @@ Then customize the config/configatron files that were generated to your settings
   configatron.apn.port # => 2195
   configatron.apn.host # => 'gateway.sandbox.push.apple.com'
   configatron.apn.cert #=> File.join(RAILS_ROOT, 'config', 'apple_push_notification_development.pem')
+  configatron.apn.notification_expiration_seconds # => (86400*30)
   
   # production (delivery):
   configatron.apn.host # => 'gateway.push.apple.com'

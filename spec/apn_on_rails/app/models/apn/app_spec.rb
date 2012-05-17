@@ -12,7 +12,7 @@ describe APN::App do
                        NotificationFactory.create({:device_id => device.id})]
                        
      notifications.each_with_index do |notify, i|
-       notify.stub(:message_for_sending).and_return("message-#{i}")
+       notify.stub(:enhanced_message_for_sending).and_return("message-#{i}")
        notify.should_receive(:sent_at=).with(instance_of(Time))
        notify.should_receive(:save)
      end
@@ -47,7 +47,7 @@ describe APN::App do
                        NotificationFactory.create({:device_id => device.id})]
                    
        notifications.each_with_index do |notify, i|
-         notify.stub(:message_for_sending).and_return("message-#{i}")
+         notify.stub(:enhanced_message_for_sending).and_return("message-#{i}")
          notify.should_receive(:sent_at=).with(instance_of(Time))
          notify.should_receive(:save)
        end  
