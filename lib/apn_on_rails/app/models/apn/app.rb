@@ -67,6 +67,7 @@ class APN::App < APN::Base
                 if e.message == "Broken pipe"
                   #Write failed (disconnected). Read response.
                   error_code, notif_id = response_from_apns(conn)
+                  puts "Error code #{error_code.to_s}"
                   if error_code == 8
                     failed_notification = APN::Notification.find(notif_id)
                     unless failed_notification.nil?
@@ -97,7 +98,24 @@ class APN::App < APN::Base
       APN::Connection.open_for_delivery({:cert => self.cert}) do |conn, sock|
         unsent_group_notifications.each do |gnoty|
           gnoty.devices.find_each do |device|
-            conn.write(gnoty.message_for_sending(device))
+            begin
+              conn.write(gnoty.enhanced_message_for_sending(device))
+            rescue Exception => e
+              puts "Error #{e.to_s}"
+              if e.message == "Broken pipe"
+                Rails.logger.error("APN Error: #{e.to_s}")
+                error_code, notif_id = response_from_apns(conn)
+                if error_code == 8
+                  failed_notification = APN::Notification.find(notif_id)
+                  unless failed_notification.nil?
+                    unless failed_notification.device.nil?
+                      Rails.logger.error("Removing invalid device: #{failed_notification.device.id}")
+                      APN::Device.delete(failed_notification.device.id) # remove invalid device
+                    end
+                  end
+                end
+              end
+            end
           end
           gnoty.sent_at = Time.now
           gnoty.save
